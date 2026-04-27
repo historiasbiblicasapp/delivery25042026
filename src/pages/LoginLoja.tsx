@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { Eye, EyeOff, Store } from 'lucide-react';
 
 export default function LoginLoja() {
-  const { signInLoja } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const prelojaId = searchParams.get('loja');
@@ -16,16 +14,32 @@ export default function LoginLoja() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Armazenar dados do usuário logado
+  const handleLoginSuccess = (userData: any) => {
+    localStorage.setItem('loja_user', JSON.stringify(userData));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     
-    const { error } = await signInLoja(email, password);
-    if (error) {
-      setError(error.message);
-    } else {
-      navigate('/loja');
+    try {
+      const { data, error } = await supabase
+        .from('delivery_usuarios')
+        .select('*')
+        .eq('email', email)
+        .eq('password', password)
+        .single();
+
+      if (error || !data) {
+        setError('Credenciais inválidas ou usuário inativo');
+      } else {
+        handleLoginSuccess(data);
+        navigate('/loja');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erro ao fazer login');
     }
     setLoading(false);
   };
