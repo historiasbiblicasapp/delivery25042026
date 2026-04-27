@@ -58,12 +58,18 @@ export default function Pedido() {
   }, [deliveryId]);
 
   const fetchDelivery = async () => {
-    const { data } = await supabase
+    if (!deliveryId) return;
+    
+    const { data, error } = await supabase
       .from('delivery_lojas')
       .select('*')
       .eq('id', deliveryId)
-      .eq('ativo', true)
       .single();
+    
+    if (error) {
+      console.log('Erro ao buscar loja:', error);
+      return;
+    }
     
     if (data) {
       setDelivery(data);
