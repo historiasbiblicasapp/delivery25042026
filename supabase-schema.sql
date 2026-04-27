@@ -9,7 +9,43 @@ CREATE TABLE IF NOT EXISTS public.delivery_master (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Lojas (deliverys cadastrados)
+-- 2. Planos disponíveis
+CREATE TABLE IF NOT EXISTS public.delivery_planos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nome TEXT NOT NULL,
+  descricao TEXT,
+  preco_mensal NUMERIC(10,2) NOT NULL,
+  limite_lojas INTEGER DEFAULT 1,
+  fitur_pix BOOLEAN DEFAULT false,
+  fitur_relatorios BOOLEAN DEFAULT false,
+  ativo BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. Assinaturas das lojas
+CREATE TABLE IF NOT EXISTS public.delivery_assinaturas (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  loja_id UUID REFERENCES delivery_lojas(id),
+  plano_id UUID REFERENCES delivery_planos(id),
+  status TEXT DEFAULT 'trial',
+  data_inicio TIMESTAMPTZ DEFAULT NOW(),
+  data_fim TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. Configurações de pagamento (Mercado Pago)
+CREATE TABLE IF NOT EXISTS public.delivery_pagamentos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  loja_id UUID REFERENCES delivery_lojas(id),
+  mercado_pago_access_token TEXT,
+  mercado_pago_client_id TEXT,
+  chave_pix TEXT,
+  tipo_chave_pix TEXT,
+  active BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5. Lojas (deliverys cadastrados)
 CREATE TABLE IF NOT EXISTS public.delivery_lojas (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   nome TEXT NOT NULL,
@@ -26,7 +62,7 @@ CREATE TABLE IF NOT EXISTS public.delivery_lojas (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. Produtos (cardápio)
+-- 6. Produtos (cardápio)
 CREATE TABLE IF NOT EXISTS public.delivery_produtos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   loja_id UUID NOT NULL REFERENCES delivery_lojas(id),
@@ -39,7 +75,7 @@ CREATE TABLE IF NOT EXISTS public.delivery_produtos (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. Pedidos
+-- 7. Pedidos
 CREATE TABLE IF NOT EXISTS public.delivery_pedidos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   loja_id UUID NOT NULL REFERENCES delivery_lojas(id),
@@ -52,11 +88,12 @@ CREATE TABLE IF NOT EXISTS public.delivery_pedidos (
   total NUMERIC(10,2) NOT NULL,
   forma_pagamento TEXT DEFAULT 'dinheiro',
   status TEXT DEFAULT 'recebido',
+  observacao TEXT,
   entregador_id UUID,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. Motoboys
+-- 8. Motoboys
 CREATE TABLE IF NOT EXISTS public.delivery_motoboys (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   loja_id UUID REFERENCES delivery_lojas(id),
@@ -66,14 +103,36 @@ CREATE TABLE IF NOT EXISTS public.delivery_motoboys (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Desabilitar RLS temporariamente (sem configuração)
+-- 9. Métricas/Dashboard
+CREATE TABLE IF NOT EXISTS public.delivery_metricas (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  loja_id UUID REFERENCES delivery_lojas(id),
+  data_date DATE,
+  pedidos_dia INTEGER DEFAULT 0,
+  vendas_dia NUMERIC(10,2) DEFAULT 0,
+  ticket_medio NUMERIC(10,2) DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Desabilitar RLS temporariamente
 ALTER TABLE public.delivery_master DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.delivery_planos DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.delivery_assinaturas DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.delivery_pagamentos DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.delivery_lojas DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.delivery_produtos DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.delivery_pedidos DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.delivery_motoboys DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.delivery_metricas DISABLE ROW LEVEL SECURITY;
 
 -- Inserir Master inicial
 INSERT INTO public.delivery_master (email, nome, password)
 VALUES ('master@delivery2026.com', 'Administrador', 'master123')
 ON CONFLICT (email) DO NOTHING;
+
+-- Inserir Planos padrão
+INSERT INTO public.delivery_planos (nome, descricao, preco_mensal, limite_lojas, fitur_pix, fitur_relatorios) VALUES
+('Básico', '1 Loja, PIX manual', 49.90, 1, false, false),
+('Intermediário', '1 Loja, PIX automático', 99.90, 1, true, false),
+('Pro', '3 Lojas, PIX automático', 129.90, 3, true, true)
+ON CONFLICT (nome) DO NOTHING;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Package, Truck, DollarSign, MapPin, Clock, Edit2, Save, X } from 'lucide-react';
+import { Package, Truck, DollarSign, MapPin, Clock, Edit2, Save, X, CreditCard } from 'lucide-react';
 
 interface Loja {
   id: string;
@@ -31,7 +31,7 @@ export default function AdminLoja() {
   
   const [loja, setLoja] = useState<Loja | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
-  const [aba, setAba] = useState<'pedidos' | 'config'>('pedidos');
+  const [aba, setAba] = useState<'pedidos' | 'config' | 'pagamentos'>('pedidos');
   const [editForm, setEditForm] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -178,6 +178,25 @@ export default function AdminLoja() {
           }}
         >
           Config
+        </button>
+        <button
+          onClick={() => navigate(`/pagamentos?loja=${lojaId}`)}
+          style={{
+            flex: 1,
+            padding: '0.75rem',
+            background: 'transparent',
+            color: '#333',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.25rem'
+          }}
+        >
+          <CreditCard size={16} /> PIX
         </button>
       </div>
 
