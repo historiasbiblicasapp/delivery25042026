@@ -83,8 +83,8 @@ export default function Dashboard() {
   };
 
   const fetchPlanos = async () => {
-    const { data } = await supabase.from('delivery_planos').select('*').order('preco_mensal');
-    if (data) setPlanos(data);
+    const { data, error } = await supabase.from('delivery_planos').select('*').order('preco_mensal');
+    if (data && data.length > 0) setPlanos(data);
   };
 
   const fetchMetricas = async () => {
