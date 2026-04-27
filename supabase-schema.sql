@@ -1,4 +1,5 @@
 -- Delivery 2026 - Schema do Banco de Dados
+-- Execute este SQL no Supabase SQL Editor
 
 -- 1. Master (dono do sistema)
 CREATE TABLE IF NOT EXISTS public.delivery_master (
@@ -9,43 +10,7 @@ CREATE TABLE IF NOT EXISTS public.delivery_master (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Planos disponíveis
-CREATE TABLE IF NOT EXISTS public.delivery_planos (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  nome TEXT NOT NULL,
-  descricao TEXT,
-  preco_mensal NUMERIC(10,2) NOT NULL,
-  limite_lojas INTEGER DEFAULT 1,
-  fitur_pix BOOLEAN DEFAULT false,
-  fitur_relatorios BOOLEAN DEFAULT false,
-  ativo BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 3. Assinaturas das lojas
-CREATE TABLE IF NOT EXISTS public.delivery_assinaturas (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  loja_id UUID REFERENCES delivery_lojas(id),
-  plano_id UUID REFERENCES delivery_planos(id),
-  status TEXT DEFAULT 'trial',
-  data_inicio TIMESTAMPTZ DEFAULT NOW(),
-  data_fim TIMESTAMPTZ,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 4. Configurações de pagamento (Mercado Pago)
-CREATE TABLE IF NOT EXISTS public.delivery_pagamentos (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  loja_id UUID REFERENCES delivery_lojas(id),
-  mercado_pago_access_token TEXT,
-  mercado_pago_client_id TEXT,
-  chave_pix TEXT,
-  tipo_chave_pix TEXT,
-  active BOOLEAN DEFAULT false,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 5. Lojas (deliverys cadastrados)
+-- 2. Lojas (deliverys cadastrados)
 CREATE TABLE IF NOT EXISTS public.delivery_lojas (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   nome TEXT NOT NULL,
@@ -62,10 +27,46 @@ CREATE TABLE IF NOT EXISTS public.delivery_lojas (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 3. Planos disponíveis
+CREATE TABLE IF NOT EXISTS public.delivery_planos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nome TEXT NOT NULL,
+  descricao TEXT,
+  preco_mensal NUMERIC(10,2) NOT NULL,
+  limite_lojas INTEGER DEFAULT 1,
+  fitur_pix BOOLEAN DEFAULT false,
+  fitur_relatorios BOOLEAN DEFAULT false,
+  ativo BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. Assinaturas das lojas
+CREATE TABLE IF NOT EXISTS public.delivery_assinaturas (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  loja_id UUID,
+  plano_id UUID,
+  status TEXT DEFAULT 'trial',
+  data_inicio TIMESTAMPTZ DEFAULT NOW(),
+  data_fim TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5. Configurações de pagamento (Mercado Pago)
+CREATE TABLE IF NOT EXISTS public.delivery_pagamentos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  loja_id UUID,
+  mercado_pago_access_token TEXT,
+  mercado_pago_client_id TEXT,
+  chave_pix TEXT,
+  tipo_chave_pix TEXT,
+  active BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- 6. Produtos (cardápio)
 CREATE TABLE IF NOT EXISTS public.delivery_produtos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  loja_id UUID NOT NULL REFERENCES delivery_lojas(id),
+  loja_id UUID NOT NULL,
   nome TEXT NOT NULL,
   descricao TEXT,
   preco NUMERIC(10,2) NOT NULL,
@@ -78,7 +79,7 @@ CREATE TABLE IF NOT EXISTS public.delivery_produtos (
 -- 7. Pedidos
 CREATE TABLE IF NOT EXISTS public.delivery_pedidos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  loja_id UUID NOT NULL REFERENCES delivery_lojas(id),
+  loja_id UUID NOT NULL,
   cliente_nome TEXT NOT NULL,
   cliente_telefone TEXT NOT NULL,
   endereco TEXT,
@@ -96,7 +97,7 @@ CREATE TABLE IF NOT EXISTS public.delivery_pedidos (
 -- 8. Motoboys
 CREATE TABLE IF NOT EXISTS public.delivery_motoboys (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  loja_id UUID REFERENCES delivery_lojas(id),
+  loja_id UUID,
   nome TEXT NOT NULL,
   telefone TEXT NOT NULL,
   ativo BOOLEAN DEFAULT true,
@@ -106,7 +107,7 @@ CREATE TABLE IF NOT EXISTS public.delivery_motoboys (
 -- 9. Dispositivos conectados (para controle de acesso)
 CREATE TABLE IF NOT EXISTS public.delivery_dispositivos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  loja_id UUID REFERENCES delivery_lojas(id),
+  loja_id UUID,
   device_id TEXT NOT NULL,
   device_name TEXT,
   ip_address TEXT,
@@ -118,7 +119,7 @@ CREATE TABLE IF NOT EXISTS public.delivery_dispositivos (
 -- 10. Métricas/Dashboard
 CREATE TABLE IF NOT EXISTS public.delivery_metricas (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  loja_id UUID REFERENCES delivery_lojas(id),
+  loja_id UUID,
   data_date DATE,
   pedidos_dia INTEGER DEFAULT 0,
   vendas_dia NUMERIC(10,2) DEFAULT 0,
@@ -135,8 +136,8 @@ ALTER TABLE public.delivery_lojas DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.delivery_produtos DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.delivery_pedidos DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.delivery_motoboys DISABLE ROW LEVEL SECURITY;
-ALTER TABLE public.delivery_metricas DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.delivery_dispositivos DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.delivery_metricas DISABLE ROW LEVEL SECURITY;
 
 -- Inserir Master inicial
 INSERT INTO public.delivery_master (email, nome, password)
@@ -149,3 +150,5 @@ INSERT INTO public.delivery_planos (nome, descricao, preco_mensal, limite_lojas,
 ('Intermediário', '1 Loja, PIX automático', 99.90, 1, true, false),
 ('Pro', '3 Lojas, PIX automático', 129.90, 3, true, true)
 ON CONFLICT (nome) DO NOTHING;
+
+-- Pronto! Execute este script no SQL Editor do Supabase
