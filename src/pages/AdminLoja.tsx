@@ -27,7 +27,9 @@ interface Pedido {
 export default function AdminLoja() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const lojaId = searchParams.get('loja');
+  const lojaId = searchParams.get('loja') || localStorage.getItem('loja_id');
+  
+  console.log('AdminLoja - lojaId:', lojaId);
   
   const [loja, setLoja] = useState<Loja | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);

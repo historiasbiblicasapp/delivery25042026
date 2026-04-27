@@ -16,7 +16,9 @@ export default function LoginLoja() {
 
   // Armazenar dados do usuário logado
   const handleLoginSuccess = (userData: any) => {
+    console.log('Login success:', userData);
     localStorage.setItem('loja_user', JSON.stringify(userData));
+    localStorage.setItem('loja_id', userData.loja_id);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,6 +38,7 @@ export default function LoginLoja() {
         setError('Credenciais inválidas ou usuário inativo');
       } else {
         handleLoginSuccess(data);
+        alert('Login OK! Redirecionando para /loja');
         navigate('/loja');
       }
     } catch (err: any) {
