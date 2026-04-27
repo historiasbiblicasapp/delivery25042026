@@ -11,6 +11,8 @@ import Motoboy from './pages/Motoboy';
 import ConfigPagamento from './pages/ConfigPagamento';
 import Dispositivos from './pages/Dispositivos';
 import PDV from './pages/PDV';
+import Metrics from './pages/Metrics';
+import Promo from './pages/Promo';
 import { LayoutDashboard, Package, LogOut, Truck, ShoppingCart, CreditCard, Monitor, ShoppingBag } from 'lucide-react';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -81,11 +83,14 @@ export default function App() {
           <Route path="/login-loja" element={<LoginLoja />} />
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/cardapio" element={<PrivateRoute><Cardapio /></PrivateRoute>} />
+          <Route path="/cardapio-loja" element={<Cardapio />} />
+          <Route path="/promo" element={<Promo />} />
+          <Route path="/metrics" element={<Metrics />} />
           <Route path="/admin" element={<AdminLoja />} />
           <Route path="/loja" element={<AdminLoja />} />
           <Route path="/pagamentos" element={<ConfigPagamento />} />
           <Route path="/dispositivos" element={<Dispositivos />} />
-          <Route path="/pdv" element={<PrivateRoute><PDV /></PrivateRoute>} />
+          <Route path="/pdv" element={<PDV />} />
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="/login-login" element={<Navigate to="/login" />} />
           <Route path="/pedido" element={<Pedido />} />

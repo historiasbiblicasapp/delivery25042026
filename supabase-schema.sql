@@ -86,6 +86,8 @@ CREATE TABLE IF NOT EXISTS public.delivery_pedidos (
   itens JSONB NOT NULL,
   subtotal NUMERIC(10,2) NOT NULL,
   taxa_entrega NUMERIC(10,2) DEFAULT 0,
+  desconto NUMERIC(10,2) DEFAULT 0,
+  promo_codigo TEXT,
   total NUMERIC(10,2) NOT NULL,
   forma_pagamento TEXT DEFAULT 'dinheiro',
   status TEXT DEFAULT 'recebido',
@@ -97,10 +99,23 @@ CREATE TABLE IF NOT EXISTS public.delivery_pedidos (
 -- 8. Motoboys
 CREATE TABLE IF NOT EXISTS public.delivery_motoboys (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  loja_id UUID,
   nome TEXT NOT NULL,
-  telefone TEXT NOT NULL,
+  telefone TEXT,
   ativo BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 9. Promoções
+CREATE TABLE IF NOT EXISTS public.delivery_promocoes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  loja_id UUID NOT NULL,
+  titulo TEXT NOT NULL,
+  descricao TEXT,
+  desconto NUMERIC(10,2) NOT NULL,
+  tipo TEXT DEFAULT 'porcentagem',
+  codigo TEXT,
+  valido_ate TIMESTAMPTZ,
+  ativa BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

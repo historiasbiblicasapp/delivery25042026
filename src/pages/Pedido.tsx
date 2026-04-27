@@ -33,6 +33,7 @@ export default function Pedido() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const deliveryId = searchParams.get('loja');
+  const promoCodigo = searchParams.get('promo');
   
   // Tracking de dispositivo
   useDeviceTracking(deliveryId);
@@ -41,6 +42,7 @@ export default function Pedido() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
   const [etapa, setEtapa] = useState<string>('cardapio');
+  const [promocao, setPromocao] = useState<{desconto: number, tipo: string, titulo: string} | null>(null);
   
   // Dados do cliente
   const [nome, setNome] = useState('');
@@ -56,6 +58,24 @@ export default function Pedido() {
       fetchDelivery();
     }
   }, [deliveryId]);
+
+  useEffect(() => {
+    if (deliveryId && promoCodigo) {
+      fetchPromocao();
+    }
+  }, [deliveryId, promoCodigo]);
+
+  const fetchPromocao = async () => {
+    if (!deliveryId || !promoCodigo) return;
+    const { data } = await supabase
+      .from('delivery_promocoes')
+      .select('*')
+      .eq('loja_id', deliveryId)
+      .eq('codigo', promoCodigo)
+      .eq('ativa', true)
+      .single();
+    if (data) setPromocao(data);
+  };
 
   const fetchDelivery = async () => {
     if (!deliveryId) return;
@@ -114,7 +134,15 @@ export default function Pedido() {
 
   const subtotal = carrinho.reduce((acc, item) => acc + (item.produto.preco * item.quantidade), 0);
   const taxaEntrega = delivery?.taxa_entrega || 0;
-  const total = subtotal + taxaEntrega;
+  let desconto = 0;
+  if (promocao) {
+    if (promocao.tipo === 'porcentagem') {
+      desconto = subtotal * (promocao.desconto / 100);
+    } else {
+      desconto = promocao.desconto;
+    }
+  }
+  const total = subtotal + taxaEntrega - desconto;
 
   const fazerPedido = async () => {
     if (!delivery || !nome || !telefone || !endereco) return;
@@ -142,6 +170,8 @@ export default function Pedido() {
         itens,
         subtotal,
         taxa_entrega: taxaEntrega,
+        desconto,
+        promo_codigo: promoCodigo,
         total,
         forma_pagamento: formaPagamento,
         status: 'recebido'
@@ -320,6 +350,12 @@ export default function Pedido() {
                   <span>Subtotal</span>
                   <span>R$ {subtotal.toFixed(2)}</span>
                 </div>
+                {desconto > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: '#22c55e' }}>
+                    <span>Desconto ({promocao?.titulo})</span>
+                    <span>-R$ {desconto.toFixed(2)}</span>
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                   <span>Taxa entrega</span>
                   <span>R$ {taxaEntrega.toFixed(2)}</span>

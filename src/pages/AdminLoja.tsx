@@ -29,30 +29,33 @@ export default function AdminLoja() {
   const navigate = useNavigate();
   const lojaId = searchParams.get('loja') || localStorage.getItem('loja_id');
   
-  console.log('AdminLoja - lojaId:', lojaId);
-  
   const [loja, setLoja] = useState<Loja | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [aba, setAba] = useState<'pedidos' | 'config' | 'pagamentos'>('pedidos');
   const [editForm, setEditForm] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [erro, setErro] = useState('');
 
   useEffect(() => {
-    if (lojaId) {
-      fetchLoja();
-      fetchPedidos();
+    if (!lojaId) {
+      setErro('Loja não encontrada. Faça login novamente.');
+      return;
     }
+    fetchLoja();
+    fetchPedidos();
   }, [lojaId]);
 
   const fetchLoja = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('delivery_lojas')
       .select('*')
       .eq('id', lojaId)
       .single();
     
-    if (data) {
+    if (error) {
+      setErro('Erro ao carregar loja: ' + error.message);
+    } else if (data) {
       setLoja(data);
       setEditForm(data);
     }
@@ -118,12 +121,10 @@ export default function AdminLoja() {
     setLoading(false);
   };
 
-  if (!loja) {
-    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Carregando...</div>;
-  }
+  if (erro) return <div style={{ padding: '2rem', textAlign: 'center', color: 'red' }}>{erro}</div>;
+  if (!loja) return <div style={{ padding: '2rem', textAlign: 'center' }}>Carregando...</div>;
 
   const corApp = loja.cor || '#22c55e';
-
   const pedidosPendentes = pedidos.filter(p => p.status === 'recebido').length;
   const totalHoje = pedidos
     .filter(p => new Date(p.created_at).toDateString() === new Date().toDateString())
@@ -133,19 +134,45 @@ export default function AdminLoja() {
     <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
       {/* Header */}
       <header style={{ background: corApp, padding: '1rem', color: 'white' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
           <div>
             <h1 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>{loja.nome_fantasia}</h1>
             <p style={{ fontSize: '0.75rem', opacity: 0.9 }}>
               {loja.ativo ? '✅ Delivery aberto' : '❌ Delivery fechado'}
             </p>
           </div>
-          <button 
-            onClick={() => navigate(`/entregas/${lojaId}`)}
-            style={{ background: 'white', color: corApp, padding: '0.5rem 1rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.875rem' }}
-          >
-            <Truck size={16} /> Entregas
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button 
+              onClick={() => navigate(`/cardapio?loja=${lojaId}`)}
+              style={{ background: 'white', color: corApp, padding: '0.5rem 0.75rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
+            >
+              📋 Cardápio
+            </button>
+            <button 
+              onClick={() => navigate(`/entregas/${lojaId}`)}
+              style={{ background: 'white', color: corApp, padding: '0.5rem 0.75rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
+            >
+              <Truck size={14} /> Entregas
+            </button>
+            <button 
+              onClick={() => navigate(`/pdv?loja=${lojaId}`)}
+              style={{ background: '#22c55e', color: 'white', padding: '0.5rem 0.75rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
+            >
+              🛒 PDV
+            </button>
+            <button 
+              onClick={() => navigate(`/metrics?loja=${lojaId}`)}
+              style={{ background: '#f59e0b', color: 'white', padding: '0.5rem 0.75rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
+            >
+              📊 Relatórios
+            </button>
+            <button 
+              onClick={() => navigate(`/promo?loja=${lojaId}`)}
+              style={{ background: '#ec4899', color: 'white', padding: '0.5rem 0.75rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
+            >
+              🎁 Promoções
+            </button>
+          </div>
         </div>
       </header>
 

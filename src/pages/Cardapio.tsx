@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { Package, Plus, Edit2, Trash2, X, Save, ChevronDown, Truck } from 'lucide-react';
@@ -18,9 +18,11 @@ const categoriasPadrao = ['Lanches', 'Pizzas', 'Bebidas', 'Sobremesas', 'Porçõ
 
 export default function Cardapio() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { masterProfile } = useAuth();
+  const urlLojaId = searchParams.get('loja');
   const [lojas, setLojas] = useState<{id: string, nome_fantasia: string}[]>([]);
-  const [lojaSelecionada, setLojaSelecionada] = useState<string>('');
+  const [lojaSelecionada, setLojaSelecionada] = useState<string>(urlLojaId || '');
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -36,12 +38,18 @@ export default function Cardapio() {
   });
 
   useEffect(() => {
-    fetchLojas();
+    const storedLojaId = localStorage.getItem('loja_id');
+    const lojaId = urlLojaId || storedLojaId;
+    if (lojaId) {
+      setLojaSelecionada(lojaId);
+    } else {
+      fetchLojas();
+    }
   }, []);
 
   useEffect(() => {
     if (lojaSelecionada) {
-      fetchProdutos();
+      fetchProdutos(lojaSelecionada);
     }
   }, [lojaSelecionada]);
 
@@ -53,15 +61,15 @@ export default function Cardapio() {
       .order('nome_fantasia');
     if (data) {
       setLojas(data);
-      if (data.length > 0) setLojaSelecionada(data[0].id);
+      if (data.length > 0 && !lojaSelecionada) setLojaSelecionada(data[0].id);
     }
   };
 
-  const fetchProdutos = async () => {
+  const fetchProdutos = async (lojaId: string) => {
     const { data } = await supabase
       .from('delivery_produtos')
       .select('*')
-      .eq('loja_id', lojaSelecionada)
+      .eq('loja_id', lojaId)
       .order('categoria, nome');
     if (data) setProdutos(data);
   };
@@ -90,7 +98,7 @@ export default function Cardapio() {
         setMessage('Erro ao atualizar');
       } else {
         setMessage('Produto atualizado!');
-        fetchProdutos();
+        fetchProdutos(lojaSelecionada);
         setShowModal(false);
       }
     } else {
@@ -101,7 +109,7 @@ export default function Cardapio() {
         setMessage('Erro ao criar: ' + error.message);
       } else {
         setMessage('Produto criado!');
-        fetchProdutos();
+        fetchProdutos(lojaSelecionada);
         setShowModal(false);
       }
     }
@@ -114,13 +122,13 @@ export default function Cardapio() {
       .from('delivery_produtos')
       .update({ disponivel: !produto.disponivel })
       .eq('id', produto.id);
-    fetchProdutos();
+    fetchProdutos(lojaSelecionada);
   };
 
   const excluirProduto = async (id: string) => {
     if (!confirm('Tem certeza que deseja excluir?')) return;
     await supabase.from('delivery_produtos').delete().eq('id', id);
-    fetchProdutos();
+    fetchProdutos(lojaSelecionada);
   };
 
   const editarProduto = (produto: Produto) => {
