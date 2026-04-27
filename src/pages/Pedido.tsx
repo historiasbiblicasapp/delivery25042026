@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useDeviceTracking } from '../hooks/useDeviceTracking';
 import { ShoppingCart, Plus, Minus, MapPin, CreditCard, Banknote, Send, Check, ChevronRight, X } from 'lucide-react';
 
 interface Produto {
@@ -32,6 +33,9 @@ export default function Pedido() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const deliveryId = searchParams.get('loja');
+  
+  // Tracking de dispositivo
+  useDeviceTracking(deliveryId);
   
   const [delivery, setDelivery] = useState<Delivery | null>(null);
   const [produtos, setProdutos] = useState<Produto[]>([]);

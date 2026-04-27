@@ -8,7 +8,8 @@ import Entregas from './pages/Entregas';
 import AdminLoja from './pages/AdminLoja';
 import Motoboy from './pages/Motoboy';
 import ConfigPagamento from './pages/ConfigPagamento';
-import { LayoutDashboard, Package, LogOut, Truck, ShoppingCart, CreditCard } from 'lucide-react';
+import Dispositivos from './pages/Dispositivos';
+import { LayoutDashboard, Package, LogOut, Truck, ShoppingCart, CreditCard, Monitor } from 'lucide-react';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -31,6 +32,7 @@ function Layout({ children }: { children: React.ReactNode }) {
   const menuItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Lojas' },
     { path: '/cardapio', icon: Package, label: 'Cardápio' },
+    { path: '/dispositivos', icon: Monitor, label: 'Devices' },
   ];
 
   return (
@@ -77,6 +79,7 @@ export default function App() {
           <Route path="/cardapio" element={<PrivateRoute><Cardapio /></PrivateRoute>} />
           <Route path="/admin" element={<AdminLoja />} />
           <Route path="/pagamentos" element={<ConfigPagamento />} />
+          <Route path="/dispositivos" element={<Dispositivos />} />
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="/pedido" element={<Pedido />} />
           <Route path="/entregas/*" element={<Entregas />} />

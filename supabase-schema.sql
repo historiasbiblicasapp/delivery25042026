@@ -103,7 +103,19 @@ CREATE TABLE IF NOT EXISTS public.delivery_motoboys (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 9. Métricas/Dashboard
+-- 9. Dispositivos conectados (para controle de acesso)
+CREATE TABLE IF NOT EXISTS public.delivery_dispositivos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  loja_id UUID REFERENCES delivery_lojas(id),
+  device_id TEXT NOT NULL,
+  device_name TEXT,
+  ip_address TEXT,
+  ultima_atividade TIMESTAMPTZ DEFAULT NOW(),
+  ativo BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 10. Métricas/Dashboard
 CREATE TABLE IF NOT EXISTS public.delivery_metricas (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   loja_id UUID REFERENCES delivery_lojas(id),
@@ -124,6 +136,7 @@ ALTER TABLE public.delivery_produtos DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.delivery_pedidos DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.delivery_motoboys DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.delivery_metricas DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.delivery_dispositivos DISABLE ROW LEVEL SECURITY;
 
 -- Inserir Master inicial
 INSERT INTO public.delivery_master (email, nome, password)
