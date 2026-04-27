@@ -153,6 +153,31 @@ export default function Dashboard() {
     fetchLojas();
   };
 
+  const criarUsuarioLoja = async (loja: Loja) => {
+    const email = prompt(`Digite o email do usuário para ${loja.nome_fantasia}:`);
+    if (!email) return;
+    
+    const password = prompt('Digite uma senha:');
+    if (!password) return;
+    
+    const nome = prompt('Digite o nome do usuário:') || email;
+    
+    const { error } = await supabase.from('delivery_usuarios').insert({
+      loja_id: loja.id,
+      email,
+      nome,
+      password,
+      tipo: 'loja',
+      ativo: true
+    });
+    
+    if (error) {
+      alert('Erro: ' + error.message);
+    } else {
+      alert(`Usuário criado!\nEmail: ${email}\nSenha: ${password}\n\nO lojista pode acessar em: ${window.location.origin}/login-loja`);
+    }
+  };
+
   const excluirLoja = async (id: string) => {
     if (!confirm('Excluir loja?')) return;
     await supabase.from('delivery_lojas').delete().eq('id', id);
@@ -247,6 +272,9 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button onClick={() => editarLoja(loja)} style={{ flex: 1, padding: '0.5rem', background: '#f5f5f5', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                     <Edit2 size={14} /> Editar
+                  </button>
+                  <button onClick={() => criarUsuarioLoja(loja)} style={{ flex: 1, padding: '0.5rem', background: '#dbeafe', border: 'none', borderRadius: '4px', cursor: 'pointer', color: '#2563eb' }}>
+                    + Login
                   </button>
                   <button onClick={() => toggleAtivo(loja)} style={{ flex: 1, padding: '0.5rem', background: loja.ativo ? '#fee2e2' : '#dcfce7', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                     {loja.ativo ? <Lock size={14} /> : <Unlock size={14} />}
