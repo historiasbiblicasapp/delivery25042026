@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Store, Plus, Edit2, Trash2, X, Lock, Unlock, DollarSign, BarChart3, CreditCard, TrendingUp, Calendar, Package } from 'lucide-react';
+import { Store, Plus, Edit2, Trash2, X, Lock, Unlock, DollarSign, BarChart3, CreditCard, TrendingUp, Calendar, Package, Download } from 'lucide-react';
 
 interface Loja {
   id: string;
@@ -42,6 +42,8 @@ interface Metricas {
   ticket_medio: number;
   pedidos_hoje: number;
   vendas_hoje: number;
+  pedidos_no_periodo: number;
+  vendas_no_periodo: number;
 }
 
 const cores = [
@@ -53,8 +55,10 @@ export default function Dashboard() {
   const { masterProfile } = useAuth();
   const [lojas, setLojas] = useState<Loja[]>([]);
   const [planos, setPlanos] = useState<Plano[]>([]);
-  const [metricas, setMetricas] = useState<Metricas>({ total_pedidos: 0, total_vendas: 0, ticket_medio: 0, pedidos_hoje: 0, vendas_hoje: 0 });
+  const [metricas, setMetricas] = useState<Metricas>({ total_pedidos: 0, total_vendas: 0, ticket_medio: 0, pedidos_hoje: 0, vendas_hoje: 0, pedidos_no_periodo: 0, vendas_no_periodo: 0 });
   const [aba, setAba] = useState<'lojas' | 'planos' | 'metricas'>('lojas');
+  const [dataInicio, setDataInicio] = useState('');
+  const [dataFim, setDataFim] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -89,22 +93,39 @@ export default function Dashboard() {
 
   const fetchMetricas = async () => {
     const hoje = new Date().toISOString().split('T')[0];
+    let query = supabase.from('delivery_pedidos').select('id, created_at, total');
     
-    const { data: pedidos } = await supabase
-      .from('delivery_pedidos')
-      .select('id, created_at, total');
+    const { data: pedidos } = await query;
     
     if (pedidos) {
+      let pedidosFiltrados = pedidos;
+      
+      if (dataInicio && dataFim) {
+        pedidosFiltrados = pedidos.filter(p => {
+          const data = p.created_at.split('T')[0];
+          return data >= dataInicio && data <= dataFim;
+        });
+      } else if (dataInicio) {
+        pedidosFiltrados = pedidos.filter(p => p.created_at.split('T')[0] >= dataInicio);
+      } else if (dataFim) {
+        pedidosFiltrados = pedidos.filter(p => p.created_at.split('T')[0] <= dataFim);
+      } else {
+        pedidosFiltrados = pedidos.filter(p => p.created_at.startsWith(hoje));
+      }
+      
       const hojePedidos = pedidos.filter(p => p.created_at.startsWith(hoje));
       const totalVendas = pedidos.reduce((acc, p) => acc + Number(p.total), 0);
       const vendasHoje = hojePedidos.reduce((acc, p) => acc + Number(p.total), 0);
+      const vendasPeriodo = pedidosFiltrados.reduce((acc, p) => acc + Number(p.total), 0);
       
       setMetricas({
         total_pedidos: pedidos.length,
         total_vendas: totalVendas,
         ticket_medio: pedidos.length > 0 ? totalVendas / pedidos.length : 0,
         pedidos_hoje: hojePedidos.length,
-        vendas_hoje: vendasHoje
+        vendas_hoje: vendasHoje,
+        pedidos_no_periodo: pedidosFiltrados.length,
+        vendas_no_periodo: vendasPeriodo
       });
     }
   };
@@ -268,6 +289,23 @@ export default function Dashboard() {
       {aba === 'metricas' && (
         <div>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>Dashboard</h2>
+          
+          {/* Filtros de data */}
+          <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <input type="date" value={dataInicio} onChange={(e) => setDataInicio(e.target.value)} style={{ flex: 1, padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }} placeholder="Data início" />
+              <input type="date" value={dataFim} onChange={(e) => setDataFim(e.target.value)} style={{ flex: 1, padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }} placeholder="Data fim" />
+              <button onClick={fetchMetricas} style={{ padding: '0.5rem 1rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Filtrar</button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.875rem', color: '#666' }}>
+                Período: {metricas.pedidos_no_periodo} pedidos = R$ {metricas.vendas_no_periodo.toFixed(2)}
+              </span>
+              <button onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.5rem', background: '#22c55e', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.875rem' }}>
+                <Download size={16} /> Exportar PDF
+              </button>
+            </div>
+          </div>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
             <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>

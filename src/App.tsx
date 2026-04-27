@@ -9,7 +9,8 @@ import AdminLoja from './pages/AdminLoja';
 import Motoboy from './pages/Motoboy';
 import ConfigPagamento from './pages/ConfigPagamento';
 import Dispositivos from './pages/Dispositivos';
-import { LayoutDashboard, Package, LogOut, Truck, ShoppingCart, CreditCard, Monitor } from 'lucide-react';
+import PDV from './pages/PDV';
+import { LayoutDashboard, Package, LogOut, Truck, ShoppingCart, CreditCard, Monitor, ShoppingBag } from 'lucide-react';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -29,10 +30,11 @@ function Layout({ children }: { children: React.ReactNode }) {
   const { signOut } = useAuth();
   const location = useLocation();
   
-  const menuItems = [
+  const menuItemsAdmin = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Lojas' },
     { path: '/cardapio', icon: Package, label: 'Cardápio' },
     { path: '/dispositivos', icon: Monitor, label: 'Devices' },
+    { path: '/pdv', icon: ShoppingBag, label: 'PDV' },
   ];
 
   return (
@@ -44,7 +46,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         </button>
       </nav>
       <div style={{ display: 'flex', gap: '0.5rem', padding: '0.5rem', background: 'white', borderBottom: '1px solid #ddd' }}>
-        {menuItems.map(item => (
+        {menuItemsAdmin.map(item => (
           <Link
             key={item.path}
             to={item.path}
@@ -80,6 +82,7 @@ export default function App() {
           <Route path="/admin" element={<AdminLoja />} />
           <Route path="/pagamentos" element={<ConfigPagamento />} />
           <Route path="/dispositivos" element={<Dispositivos />} />
+          <Route path="/pdv" element={<PrivateRoute><PDV /></PrivateRoute>} />
           <Route path="/" element={<Navigate to="/dashboard" />} />
           <Route path="/pedido" element={<Pedido />} />
           <Route path="/entregas/*" element={<Entregas />} />
