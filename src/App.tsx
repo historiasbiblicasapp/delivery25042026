@@ -82,6 +82,7 @@ export default function App() {
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/cardapio" element={<PrivateRoute><Cardapio /></PrivateRoute>} />
           <Route path="/admin" element={<AdminLoja />} />
+          <Route path="/loja" element={<AdminLoja />} />
           <Route path="/pagamentos" element={<ConfigPagamento />} />
           <Route path="/dispositivos" element={<Dispositivos />} />
           <Route path="/pdv" element={<PrivateRoute><PDV /></PrivateRoute>} />
