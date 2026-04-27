@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
+import LoginLoja from './pages/LoginLoja';
 import Dashboard from './pages/Dashboard';
 import Cardapio from './pages/Cardapio';
 import Pedido from './pages/Pedido';
@@ -77,6 +78,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/login-loja" element={<LoginLoja />} />
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/cardapio" element={<PrivateRoute><Cardapio /></PrivateRoute>} />
           <Route path="/admin" element={<AdminLoja />} />
@@ -84,6 +86,7 @@ export default function App() {
           <Route path="/dispositivos" element={<Dispositivos />} />
           <Route path="/pdv" element={<PrivateRoute><PDV /></PrivateRoute>} />
           <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="/login-login" element={<Navigate to="/login" />} />
           <Route path="/pedido" element={<Pedido />} />
           <Route path="/entregas/*" element={<Entregas />} />
           <Route path="/motoboy" element={<Motoboy />} />
