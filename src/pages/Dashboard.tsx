@@ -230,7 +230,7 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.5rem' }}>
                   <div>
                     <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>{loja.nome_fantasia || loja.nome}</h3>
-                    <p style={{ fontSize: '0.875rem', color: '#666', margin: 0 }}>{loja.email}</p>
+                    <p style={{ fontSize: '0.75rem', color: '#666', margin: 0 }}>ID: {loja.id.substring(0, 8)}...</p>
                   </div>
                   <span style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', background: loja.ativo ? '#dcfce7' : '#fee2e2', color: loja.ativo ? '#166534' : '#991b1b' }}>
                     {loja.ativo ? 'Ativa' : 'Inativa'}
@@ -240,6 +240,9 @@ export default function Dashboard() {
                   <p>📍 {loja.endereco || 'Sem endereço'}</p>
                   <p>💰 Entrega: R$ {loja.taxa_entrega} | Mín: R$ {loja.preco_minimo}</p>
                   <p>⏱️ {loja.tempo_entrega_min} min</p>
+                  <p style={{ marginTop: '0.5rem', padding: '0.25rem 0.5rem', background: '#f5f5f5', borderRadius: '4px', fontSize: '0.75rem' }}>
+                    🔗 {window.location.origin}/pedido?loja={loja.id}
+                  </p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button onClick={() => editarLoja(loja)} style={{ flex: 1, padding: '0.5rem', background: '#f5f5f5', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
