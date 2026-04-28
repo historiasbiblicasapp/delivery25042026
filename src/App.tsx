@@ -82,7 +82,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/login-loja" element={<LoginLoja />} />
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          <Route path="/cardapio" element={<PrivateRoute><Cardapio /></PrivateRoute>} />
+          <Route path="/cardapio" element={<Cardapio />} />
           <Route path="/cardapio-loja" element={<Cardapio />} />
           <Route path="/promo" element={<Promo />} />
           <Route path="/metrics" element={<Metrics />} />

@@ -42,6 +42,8 @@ export default function Cardapio() {
     const lojaId = urlLojaId || storedLojaId;
     if (lojaId) {
       setLojaSelecionada(lojaId);
+    } else if (!masterProfile) {
+      navigate('/login-loja');
     } else {
       fetchLojas();
     }
