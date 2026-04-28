@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { MapPin, Phone, Package, CheckCircle, Navigation, Clock, PhoneCall } from 'lucide-react';
+import { MapPin, Phone, Package, CheckCircle, Navigation, Clock, PhoneCall, ArrowLeft } from 'lucide-react';
 
 interface Pedido {
   id: string;
@@ -16,8 +16,11 @@ interface Pedido {
 }
 
 export default function Motoboy() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const lojaId = searchParams.get('loja');
+  const lojaIdParam = searchParams.get('loja');
+  const lojaIdStored = localStorage.getItem('loja_id');
+  const lojaId = lojaIdParam || lojaIdStored;
   
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(false);
@@ -107,9 +110,14 @@ export default function Motoboy() {
       {/* Header */}
       <header style={{ background: '#f59e0b', padding: '1rem', color: 'white' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h1 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>🛵 Motoboy</h1>
-            <p style={{ fontSize: '0.75rem', opacity: 0.9 }}>{pedidos.length} pedido(s) para entrega</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button onClick={() => navigate(-1)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
+              <ArrowLeft size={24} />
+            </button>
+            <div>
+              <h1 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>🛵 Motoboy</h1>
+              <p style={{ fontSize: '0.75rem', opacity: 0.9 }}>{pedidos.length} pedido(s) para entrega</p>
+            </div>
           </div>
           <button 
             onClick={fetchPedidos}
