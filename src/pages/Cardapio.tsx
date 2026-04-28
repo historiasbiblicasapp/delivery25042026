@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Package, Plus, Edit2, Trash2, X, Save, ChevronDown, Truck } from 'lucide-react';
+import { Package, Plus, Edit2, Trash2, X, Save, ChevronDown, Truck, ArrowLeft } from 'lucide-react';
 
 interface Produto {
   id: string;
@@ -155,7 +155,12 @@ export default function Cardapio() {
   return (
     <div style={{ padding: '1rem', background: '#f5f5f5', minHeight: '100vh' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>Cardápio Digital</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666' }}>
+            <ArrowLeft size={24} />
+          </button>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>Cardápio Digital</h2>
+        </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
             onClick={() => navigate(`/entregas/${lojaSelecionada}`)}

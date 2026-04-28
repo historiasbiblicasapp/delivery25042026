@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { MapPin, Truck, Clock, Search, CheckCircle, XCircle, Phone, Navigation } from 'lucide-react';
+import { MapPin, Truck, Clock, Search, CheckCircle, XCircle, Phone, Navigation, ArrowLeft } from 'lucide-react';
 
 interface Pedido {
   id: string;
@@ -26,7 +26,10 @@ interface DeliveryLoja {
 
 export default function Entregas() {
   const navigate = useNavigate();
-  const [lojaId, setLojaId] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const lojaIdParam = searchParams.get('loja');
+  const lojaIdStored = localStorage.getItem('loja_id');
+  const [lojaId, setLojaId] = useState<string | null>(lojaIdParam || lojaIdStored || null);
   const [loja, setLoja] = useState<DeliveryLoja | null>(null);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [filtro, setFiltro] = useState<'pendentes' | 'entregando' | 'entregues'>('pendentes');
@@ -34,16 +37,8 @@ export default function Entregas() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const path = window.location.pathname;
-    const match = path.match(/\/entregas\/(\w+)/);
-    if (match) {
-      setLojaId(match[1]);
-      fetchLoja(match[1]);
-    }
-  }, []);
-
-  useEffect(() => {
     if (lojaId) {
+      fetchLoja(lojaId);
       fetchPedidos();
       const interval = setInterval(() => fetchPedidos(), 30000);
       return () => clearInterval(interval);
@@ -129,7 +124,7 @@ export default function Entregas() {
             </h1>
             <p style={{ fontSize: '0.75rem', opacity: 0.9 }}>{loja?.nome_fantasia}</p>
           </div>
-          <button onClick={() => navigate(`/admin?loja=${lojaId}`)} style={{ background: 'white', color: '#3b82f6', padding: '0.5rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.875rem' }}>
+          <button onClick={() => navigate(-1)} style={{ background: 'white', color: '#3b82f6', padding: '0.5rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.875rem' }}>
             Voltar
           </button>
         </div>
