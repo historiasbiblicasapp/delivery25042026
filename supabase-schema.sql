@@ -24,8 +24,14 @@ CREATE TABLE IF NOT EXISTS public.delivery_lojas (
   taxa_entrega NUMERIC(10,2) DEFAULT 5,
   preco_minimo NUMERIC(10,2) DEFAULT 20,
   tempo_entrega_min INTEGER DEFAULT 40,
+  nivel INTEGER DEFAULT 1,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Níveis das lojas:
+-- 1 = Básico (só PIX manual)
+-- 2 = Intermediário (PIX manual + relatórios)
+-- 3 = PRO (PIX manual + Mercado Pago + relatórios)
 
 -- 3. Planos disponíveis
 CREATE TABLE IF NOT EXISTS public.delivery_planos (

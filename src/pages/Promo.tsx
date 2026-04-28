@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Gift, Plus, Edit2, Trash2, X, Save, Share, Copy } from 'lucide-react';
+import { Gift, Plus, Edit2, Trash2, X, Save, Share, Copy, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Promocao {
@@ -94,9 +94,14 @@ export default function Promo() {
     <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
       <header style={{ background: cor, padding: '1rem', color: 'white' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h1 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>🎁 Promoções</h1>
-            <p style={{ fontSize: '0.75rem', opacity: 0.9 }}>{loja?.nome_fantasia}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button onClick={() => navigate(-1)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
+              <ArrowLeft size={24} />
+            </button>
+            <div>
+              <h1 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>🎁 Promoções</h1>
+              <p style={{ fontSize: '0.75rem', opacity: 0.9 }}>{loja?.nome_fantasia}</p>
+            </div>
           </div>
           <button 
             onClick={() => { setEditPromo(null); setForm({ titulo: '', descricao: '', desconto: '', tipo: 'porcentagem', codigo: '', valido_ate: '' }); setShowModal(true); }}

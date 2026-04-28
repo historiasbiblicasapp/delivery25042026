@@ -16,7 +16,8 @@ export default function Metrics() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const lojaId = searchParams.get('loja') || localStorage.getItem('loja_id');
-  const [dias, setDias] = useState(7);
+  const [dataInicio, setDataInicio] = useState(format(subDays(new Date(), 30), 'yyyy-MM-dd'));
+  const [dataFim, setDataFim] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [metricas, setMetricas] = useState<Metricas>({ total_pedidos: 0, total_vendas: 0, ticket_medio: 0, pedidos_hoje: 0, vendas_hoje: 0 });
   const [loja, setLoja] = useState<{nome_fantasia: string, cor: string} | null>(null);
   const [pedidos, setPedidos] = useState<any[]>([]);
@@ -28,7 +29,7 @@ export default function Metrics() {
       fetchMetricas();
       fetchPedidos();
     }
-  }, [lojaId, dias]);
+  }, [lojaId, dataInicio, dataFim]);
 
   const fetchLoja = async () => {
     const { data } = await supabase.from('delivery_lojas').select('nome_fantasia, cor').eq('id', lojaId).single();
@@ -36,12 +37,14 @@ export default function Metrics() {
   };
 
   const fetchMetricas = async () => {
-    const inicio = startOfDay(subDays(new Date(), dias));
+    const inicio = startOfDay(new Date(dataInicio));
+    const fim = endOfDay(new Date(dataFim));
     const { data } = await supabase
       .from('delivery_pedidos')
       .select('total, created_at')
       .eq('loja_id', lojaId)
-      .gte('created_at', inicio.toISOString());
+      .gte('created_at', inicio.toISOString())
+      .lte('created_at', fim.toISOString());
     
     if (data) {
       const hoje = startOfDay(new Date());
@@ -59,12 +62,14 @@ export default function Metrics() {
   };
 
   const fetchPedidos = async () => {
-    const inicio = startOfDay(subDays(new Date(), dias));
+    const inicio = startOfDay(new Date(dataInicio));
+    const fim = endOfDay(new Date(dataFim));
     const { data } = await supabase
       .from('delivery_pedidos')
       .select('*')
       .eq('loja_id', lojaId)
       .gte('created_at', inicio.toISOString())
+      .lte('created_at', fim.toISOString())
       .order('created_at', { ascending: false });
     if (data) setPedidos(data);
   };
@@ -78,7 +83,7 @@ export default function Metrics() {
   const exportarPDF = () => {
     const content = `
 RELATÓRIO DE VENDAS - ${loja?.nome_fantasia}
-Período: ${dias} dias
+Período: ${format(new Date(dataInicio), 'dd/MM/yyyy')} até ${format(new Date(dataFim), 'dd/MM/yyyy')}
 Total Pedidos: ${metricas.total_pedidos}
 Total Vendas: R$ ${metricas.total_vendas.toFixed(2)}
 Ticket Médio: R$ ${metricas.ticket_medio.toFixed(2)}
@@ -111,24 +116,21 @@ Vendas Hoje: R$ ${metricas.vendas_hoje.toFixed(2)}
       </header>
 
       <div style={{ padding: '1rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-          {[7, 15, 30].map(d => (
-            <button
-              key={d}
-              onClick={() => setDias(d)}
-              style={{
-                padding: '0.5rem 1rem',
-                background: dias === d ? cor : 'white',
-                color: dias === d ? 'white' : '#333',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontWeight: 600
-              }}
-            >
-              {d} dias
-            </button>
-          ))}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <label style={{ fontWeight: 500 }}>De:</label>
+          <input
+            type="date"
+            value={dataInicio}
+            onChange={(e) => setDataInicio(e.target.value)}
+            style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+          />
+          <label style={{ fontWeight: 500 }}>Até:</label>
+          <input
+            type="date"
+            value={dataFim}
+            onChange={(e) => setDataFim(e.target.value)}
+            style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
+          />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
@@ -142,7 +144,7 @@ Vendas Hoje: R$ ${metricas.vendas_hoje.toFixed(2)}
           </div>
           <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#22c55e' }}>R$ {metricas.total_vendas.toFixed(0)}</div>
-            <div style={{ fontSize: '0.75rem', color: '#666' }}>Total ({dias} dias)</div>
+            <div style={{ fontSize: '0.75rem', color: '#666' }}>Total período</div>
           </div>
           <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#8b5cf6' }}>R$ {metricas.ticket_medio.toFixed(0)}</div>

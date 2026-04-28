@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { ShoppingCart, Plus, Minus, Trash2, Search, DollarSign, Save, X } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, Search, DollarSign, Save, X, ArrowLeft, Printer } from 'lucide-react';
 
 interface Produto {
   id: string;
@@ -20,18 +20,23 @@ interface ItemCarrinho {
 
 export default function PDV() {
   const [searchParams] = useSearchParams();
-  const lojaId = searchParams.get('loja');
+  const navigate = useNavigate();
+  const lojaId = searchParams.get('loja') || localStorage.getItem('loja_id');
   
   const [loja, setLoja] = useState<any>(null);
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
   const [busca, setBusca] = useState('');
   const [loading, setLoading] = useState(false);
+  const [subtotal, setSubtotal] = useState(0);
+  const [desconto, setDesconto] = useState(0);
   const [total, setTotal] = useState(0);
-  const [formaPagamento, setFormaPagamento] = useState<'dinheiro' | 'pix' | 'debito' | 'credito'>('dinheiro');
+  const [formaPagamento, setFormaPagamento] = useState<'dinheiro' | 'pix' | 'debito' | 'credito' | 'prazo'>('dinheiro');
   const [valorRecebido, setValorRecebido] = useState('');
   const [troco, setTroco] = useState(0);
   const [showFinalizar, setShowFinalizar] = useState(false);
+  const [cupom, setCupom] = useState<any>(null);
+  const [codigoCupom, setCodigoCupom] = useState('');
 
   useEffect(() => {
     if (lojaId) {
@@ -74,17 +79,40 @@ export default function PDV() {
   };
 
   const calcularTotal = () => {
-    return carrinho.reduce((acc, item) => acc + (item.produto.preco * item.quantidade), 0);
+    const sub = carrinho.reduce((acc, item) => acc + (item.produto.preco * item.quantidade), 0);
+    setSubtotal(sub);
+    setTotal(sub - desconto);
   };
 
   useEffect(() => {
-    setTotal(calcularTotal());
-  }, [carrinho]);
+    calcularTotal();
+  }, [carrinho, desconto]);
 
   useEffect(() => {
     const valor = parseFloat(valorRecebido) || 0;
     setTroco(valor - total);
   }, [valorRecebido, total]);
+
+  const aplicarCupom = async () => {
+    if (!codigoCupom || !lojaId) return;
+    const { data } = await supabase.from('delivery_promocoes').select('*').eq('loja_id', lojaId).eq('codigo', codigoCupom).eq('ativa', true).single();
+    if (data) {
+      setCupom(data);
+      if (data.tipo === 'porcentagem') {
+        setDesconto(subtotal * (data.desconto / 100));
+      } else {
+        setDesconto(data.desconto);
+      }
+    } else {
+      alert('Cupom inválido');
+    }
+  };
+
+  const limparCupom = () => {
+    setCupom(null);
+    setCodigoCupom('');
+    setDesconto(0);
+  };
 
   const finalizarVenda = async () => {
     if (!lojaId || carrinho.length === 0) return;
@@ -128,8 +156,13 @@ export default function PDV() {
     <div style={{ display: 'flex', height: '100vh', background: '#f5f5f5' }}>
       {/* Lista de produtos */}
       <div style={{ flex: 1, padding: '1rem', overflow: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 style={{ margin: 0, color: corApp }}>PDV - {loja?.nome_fantasia}</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666' }}>
+              <ArrowLeft size={24} />
+            </button>
+            <h2 style={{ margin: 0, color: corApp }}>PDV - {loja?.nome_fantasia}</h2>
+          </div>
           <div style={{ position: 'relative' }}>
             <Search size={20} style={{ position: 'absolute', left: '0.5rem', top: '0.5rem', color: '#999' }} />
             <input
@@ -204,6 +237,22 @@ export default function PDV() {
         </div>
 
         <div style={{ padding: '1rem', borderTop: '1px solid #ddd' }}>
+          {cupom && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', color: '#22c55e', marginBottom: '0.5rem' }}>
+              <span>Cupom: {cupom.codigo}</span>
+              <button onClick={limparCupom} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#22c55e' }}><X size={14} /></button>
+            </div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+            <span>Subtotal ({carrinho.length} itens)</span>
+            <span>R$ {subtotal.toFixed(2)}</span>
+          </div>
+          {desconto > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', color: '#22c55e', marginBottom: '0.25rem' }}>
+              <span>Desconto</span>
+              <span>-R$ {desconto.toFixed(2)}</span>
+            </div>
+          )}
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>
             <span>Total</span>
             <span style={{ color: corApp }}>R$ {total.toFixed(2)}</span>
@@ -230,15 +279,34 @@ export default function PDV() {
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Forma de Pagamento</label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
-                {['dinheiro', 'pix', 'debito', 'credito'].map(forma => (
+                {['dinheiro', 'pix', 'debito', 'credito', 'prazo'].map(forma => (
                   <button
                     key={forma}
                     onClick={() => setFormaPagamento(forma as any)}
                     style={{ padding: '0.75rem', background: formaPagamento === forma ? corApp : '#f5f5f5', color: formaPagamento === forma ? 'white' : '#333', border: 'none', borderRadius: '4px', cursor: 'pointer', textTransform: 'capitalize' }}
                   >
-                    {forma === 'dinheiro' ? '💵 Dinheiro' : forma === 'pix' ? '📱 PIX' : forma === 'debito' ? '💳 Débito' : '💳 Crédito'}
+                    {forma === 'dinheiro' ? '💵 Dinheiro' : forma === 'pix' ? '📱 PIX' : forma === 'debito' ? '💳 Débito' : forma === 'credito' ? '💳 Crédito' : '📅 A prazo'}
                   </button>
                 ))}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Cupom (opcional)</label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  type="text"
+                  value={codigoCupom}
+                  onChange={(e) => setCodigoCupom(e.target.value.toUpperCase())}
+                  placeholder="Código do cupom"
+                  style={{ flex: 1, padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                />
+                <button
+                  onClick={aplicarCupom}
+                  style={{ padding: '0.75rem', background: corApp, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                  Aplicar
+                </button>
               </div>
             </div>
 
