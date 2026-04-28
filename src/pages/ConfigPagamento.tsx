@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { CreditCard, Key, CheckCircle, XCircle, Copy, ExternalLink, Save } from 'lucide-react';
+import { CreditCard, Key, CheckCircle, XCircle, Copy, ExternalLink, Save, ArrowLeft } from 'lucide-react';
 
 interface Pagamento {
   id: string;
@@ -15,7 +15,10 @@ interface Pagamento {
 
 export default function ConfigPagamento() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const lojaId = searchParams.get('loja');
+  const urlLojaId = localStorage.getItem('loja_id');
+  const activeLojaId = lojaId || urlLojaId;
   
   const [pagamento, setPagamento] = useState<Pagamento | null>(null);
   const [form, setForm] = useState({
@@ -28,14 +31,14 @@ export default function ConfigPagamento() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (lojaId) fetchPagamento();
-  }, [lojaId]);
+    if (activeLojaId) fetchPagamento();
+  }, [activeLojaId]);
 
   const fetchPagamento = async () => {
     const { data } = await supabase
       .from('delivery_pagamentos')
       .select('*')
-      .eq('loja_id', lojaId)
+      .eq('loja_id', activeLojaId)
       .single();
     
     if (data) {
@@ -67,7 +70,7 @@ export default function ConfigPagamento() {
       await supabase
         .from('delivery_pagamentos')
         .insert({
-          loja_id: lojaId,
+          loja_id: activeLojaId,
           mercado_pago_access_token: form.mercado_pago_access_token,
           mercado_pago_client_id: form.mercado_pago_client_id,
           chave_pix: form.chave_pix,
@@ -93,7 +96,12 @@ export default function ConfigPagamento() {
 
   return (
     <div style={{ padding: '1rem', background: '#f5f5f5', minHeight: '100vh' }}>
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem' }}>Configurar Pagamentos</h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+        <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666' }}>
+          <ArrowLeft size={24} />
+        </button>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>Configurar Pagamentos</h2>
+      </div>
 
       {message && (
         <div style={{ background: message.includes('salvas') ? '#dcfce7' : '#fee2e2', color: message.includes('salvas') ? '#166534' : '#991b1b', padding: '0.75rem', borderRadius: '4px', marginBottom: '1rem' }}>
@@ -137,49 +145,16 @@ export default function ConfigPagamento() {
         </div>
       </div>
 
-      {/* Mercado Pago */}
-      <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', marginBottom: '1rem' }}>
+      {/* Mercado Pago - Temporariamente desabilitado
+      <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', opacity: 0.5 }}>
         <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <CreditCard size={20} /> Mercado Pago
+          <CreditCard size={20} /> Mercado Pago (Em breve)
         </h3>
         <p style={{ fontSize: '0.875rem', color: '#666', marginBottom: '1rem' }}>
-          Receba via PIX automaticamente com o Mercado Pago. O cliente paga no app e o valor vai direto para sua conta.
-        </p>
-        
-        <a 
-          href="https://www.mercadopago.com.br/developers/pt-br" 
-          target="_blank"
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#3b82f6', marginBottom: '1rem', textDecoration: 'none' }}
-        >
-          <ExternalLink size={16} /> Docs Mercado Pago
-        </a>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Client ID</label>
-          <input
-            type="text"
-            value={form.mercado_pago_client_id}
-            onChange={(e) => setForm({ ...form, mercado_pago_client_id: e.target.value })}
-            placeholder="1234567890123456"
-            style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Access Token</label>
-          <input
-            type="password"
-            value={form.mercado_pago_access_token}
-            onChange={(e) => setForm({ ...form, mercado_pago_access_token: e.target.value })}
-            placeholder="APP_USR-..."
-            style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
-          />
-        </div>
-
-        <p style={{ fontSize: '0.75rem', color: '#666', background: '#f5f5f5', padding: '0.75rem', borderRadius: '4px' }}>
-          ⚠️ Para testar, use tokens de sandbox (APP_USR-...). Em produção, use tokens de produção.
+          Esta opção estará disponível em breve.
         </p>
       </div>
+      */}
 
       {/* Status */}
       {pagamento && (
