@@ -15,6 +15,7 @@ interface Loja {
   taxa_entrega: number;
   preco_minimo: number;
   tempo_entrega_min: number;
+  nivel: number;
 }
 
 interface Plano {
@@ -72,7 +73,8 @@ export default function Dashboard() {
     taxa_entrega: 5,
     preco_minimo: 20,
     tempo_entrega_min: 40,
-    cor: '#22c55e'
+    cor: '#22c55e',
+    nivel: 1
   });
 
   useEffect(() => {
@@ -195,7 +197,8 @@ export default function Dashboard() {
       taxa_entrega: loja.taxa_entrega,
       preco_minimo: loja.preco_minimo,
       tempo_entrega_min: loja.tempo_entrega_min,
-      cor: loja.cor
+      cor: loja.cor,
+      nivel: loja.nivel || 1
     });
     setShowModal(true);
   };
@@ -244,7 +247,7 @@ export default function Dashboard() {
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>Deliverys ({lojas.length})</h2>
-            <button onClick={() => { setEditLoja(null); setForm({ nome: '', nome_fantasia: '', email: '', telefone: '', endereco: '', taxa_entrega: 5, preco_minimo: 20, tempo_entrega_min: 40, cor: '#22c55e' }); setShowModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: '#22c55e', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            <button onClick={() => { setEditLoja(null); setForm({ nome: '', nome_fantasia: '', email: '', telefone: '', endereco: '', taxa_entrega: 5, preco_minimo: 20, tempo_entrega_min: 40, cor: '#22c55e', nivel: 1 }); setShowModal(true); }} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: '#22c55e', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
               <Plus size={18} /> Nova Loja
             </button>
           </div>
@@ -265,6 +268,11 @@ export default function Dashboard() {
                   <p>📍 {loja.endereco || 'Sem endereço'}</p>
                   <p>💰 Entrega: R$ {loja.taxa_entrega} | Mín: R$ {loja.preco_minimo}</p>
                   <p>⏱️ {loja.tempo_entrega_min} min</p>
+                  <p style={{ marginTop: '0.25rem' }}>
+                    {loja.nivel === 1 && <span style={{ background: '#fef3c7', color: '#b45309', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>📊 Nível 1 - Básico</span>}
+                    {loja.nivel === 2 && <span style={{ background: '#dbeafe', color: '#2563eb', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>📊 Nível 2 - Intermediário</span>}
+                    {loja.nivel === 3 && <span style={{ background: '#dcfce7', color: '#166534', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem' }}>📊 Nível 3 - PRO</span>}
+                  </p>
                   <p style={{ marginTop: '0.5rem', padding: '0.25rem 0.5rem', background: '#f5f5f5', borderRadius: '4px', fontSize: '0.75rem' }}>
                     🔗 {window.location.origin}/pedido?loja={loja.id}
                   </p>
@@ -407,6 +415,19 @@ export default function Dashboard() {
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Tempo Entrega (min)</label>
                 <input type="number" value={form.tempo_entrega_min} onChange={(e) => setForm({ ...form, tempo_entrega_min: parseInt(e.target.value) })} style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }} />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Nível do Plano</label>
+                <select value={form.nivel} onChange={(e) => setForm({ ...form, nivel: parseInt(e.target.value) })} style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}>
+                  <option value={1}>Nível 1 - Básico (PIX manual)</option>
+                  <option value={2}>Nível 2 - Intermediário (Relatórios)</option>
+                  <option value={3}>Nível 3 - PRO (Mercado Pago)</option>
+                </select>
+                <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.25rem' }}>
+                  {form.nivel === 1 && '✓ PIX manual'}
+                  {form.nivel === 2 && '✓ PIX manual + Relatórios'}
+                  {form.nivel === 3 && '✓ PIX manual + Relatórios + Mercado Pago'}
+                </p>
               </div>
               <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Cor do App</label>
