@@ -16,7 +16,7 @@ export default function Metrics() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const lojaId = searchParams.get('loja') || localStorage.getItem('loja_id');
-  const [dataInicio, setDataInicio] = useState(format(subDays(new Date(), 30), 'yyyy-MM-dd'));
+  const [dataInicio, setDataInicio] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [dataFim, setDataFim] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [metricas, setMetricas] = useState<Metricas>({ total_pedidos: 0, total_vendas: 0, ticket_medio: 0, pedidos_hoje: 0, vendas_hoje: 0 });
   const [loja, setLoja] = useState<{nome_fantasia: string, cor: string} | null>(null);
@@ -121,7 +121,7 @@ ${details}
         </div>
       </header>
 
-      <div style={{ padding: '1rem' }}>
+<div style={{ padding: '1rem' }}>
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <label style={{ fontWeight: 500 }}>De:</label>
           <input
@@ -137,8 +137,11 @@ ${details}
             onChange={(e) => setDataFim(e.target.value)}
             style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
           />
-          <button onClick={() => { fetchMetricas(); fetchPedidos(); }} style={{ padding: '0.5rem 1rem', background: cor, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+          <button onClick={() => { fetchMetricas(); fetchPedidos(); }} style={{ padding: '0.5rem', background: cor, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
             🔄
+          </button>
+          <button onClick={() => { setDataInicio(format(subDays(new Date(), 30), 'yyyy-MM-dd')); setDataFim(format(new Date(), 'yyyy-MM-dd')); }} style={{ padding: '0.5rem 0.75rem', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.75rem' }}>
+            📅 30 dias
           </button>
         </div>
 
