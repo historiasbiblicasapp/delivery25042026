@@ -224,7 +224,7 @@ export default function Pedido() {
             Você receberá uma confirmação pelo WhatsApp!
           </p>
           <a 
-            href={`/?loja=${deliveryId}`}
+            href={`/pedido?loja=${deliveryId}`}
             style={{ display: 'block', marginTop: '1.5rem', padding: '0.75rem', background: corApp, color: 'white', textDecoration: 'none', borderRadius: '4px' }}
           >
             Fazer novo pedido
