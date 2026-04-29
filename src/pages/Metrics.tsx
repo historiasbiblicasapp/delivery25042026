@@ -81,6 +81,9 @@ export default function Metrics() {
   };
 
   const exportarPDF = () => {
+    const details = pedidos.map(p => `
+${p.numero_pedido || p.id.slice(0,8)} | ${p.cliente_nome} | ${p.forma_pagamento} | ${p.tipo_entrega} | R$ ${Number(p.total).toFixed(2)}`).join('\n');
+
     const content = `
 RELATÓRIO DE VENDAS - ${loja?.nome_fantasia}
 Período: ${format(new Date(dataInicio), 'dd/MM/yyyy')} até ${format(new Date(dataFim), 'dd/MM/yyyy')}
@@ -89,6 +92,9 @@ Total Vendas: R$ ${metricas.total_vendas.toFixed(2)}
 Ticket Médio: R$ ${metricas.ticket_medio.toFixed(2)}
 Pedidos Hoje: ${metricas.pedidos_hoje}
 Vendas Hoje: R$ ${metricas.vendas_hoje.toFixed(2)}
+
+DETALHAMENTO DOS PEDIDOS:
+${details}
     `.trim();
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -131,7 +137,14 @@ Vendas Hoje: R$ ${metricas.vendas_hoje.toFixed(2)}
             onChange={(e) => setDataFim(e.target.value)}
             style={{ padding: '0.5rem', border: '1px solid #ddd', borderRadius: '4px' }}
           />
+          <button onClick={() => { fetchMetricas(); fetchPedidos(); }} style={{ padding: '0.5rem 1rem', background: cor, color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+            🔄
+          </button>
         </div>
+
+        <p style={{ fontSize: '0.75rem', color: '#666', marginBottom: '0.5rem' }}>
+          Período: {dataInicio} até {dataFim} | Pedidos encontrados: {pedidos.length}
+        </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
           <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
@@ -169,8 +182,10 @@ Vendas Hoje: R$ ${metricas.vendas_hoje.toFixed(2)}
             pedidos.slice(0, 10).map((p, i) => (
               <div key={p.id} style={{ padding: '0.75rem', borderBottom: i < 9 ? '1px solid #eee' : 'none', display: 'flex', justifyContent: 'space-between' }}>
                 <div>
-                  <div style={{ fontWeight: 600 }}>{p.cliente_nome}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#666' }}>{format(new Date(p.created_at), 'dd/MM HH:mm')}</div>
+                  <div style={{ fontWeight: 600 }}>#{p.numero_pedido || p.id.slice(0,8)} - {p.cliente_nome}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#666' }}>
+                    {format(new Date(p.created_at), 'dd/MM/yyyy HH:mm')} | {p.tipo_entrega === 'retirada' ? '🏃' : '🛵'} {p.forma_pagamento}
+                  </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontWeight: 600, color: corApp }}>R$ {Number(p.total).toFixed(2)}</div>
