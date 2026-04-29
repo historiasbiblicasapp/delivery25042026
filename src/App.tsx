@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
@@ -32,6 +33,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 function Layout({ children }: { children: React.ReactNode }) {
   const { signOut } = useAuth();
   const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
   
   const menuItemsAdmin = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Lojas' },
@@ -42,13 +44,15 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
-      <nav style={{ background: '#22c55e', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ color: 'white', fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>Delivery 2026</h1>
-        <button onClick={signOut} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}>
-          <LogOut size={20} />
-        </button>
+      <nav style={{ background: '#22c55e', padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1 style={{ color: 'white', fontSize: '1.125rem', fontWeight: 600, margin: 0 }}>Delivery 2026</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button onClick={signOut} style={{ background: 'white', color: '#22c55e', border: 'none', borderRadius: '4px', padding: '0.5rem 0.75rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+            🚪 Sair
+          </button>
+        </div>
       </nav>
-      <div style={{ display: 'flex', gap: '0.5rem', padding: '0.5rem', background: 'white', borderBottom: '1px solid #ddd' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', padding: '0.5rem', background: 'white', borderBottom: '1px solid #ddd', overflowX: 'auto' }}>
         {menuItemsAdmin.map(item => (
           <Link
             key={item.path}
