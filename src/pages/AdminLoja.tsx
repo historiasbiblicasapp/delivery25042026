@@ -155,16 +155,6 @@ export default function AdminLoja() {
               <Truck size={14} /> Entregas
             </button>
             <button 
-              onClick={() => {
-                localStorage.removeItem('loja_id');
-                localStorage.removeItem('loja_user');
-                navigate('/login-loja');
-              }}
-              style={{ background: '#ef4444', color: 'white', padding: '0.5rem 0.75rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
-            >
-              🚪 Sair
-            </button>
-            <button 
               onClick={() => navigate(`/pdv?loja=${lojaId}`)}
               style={{ background: '#22c55e', color: 'white', padding: '0.5rem 0.75rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
             >
@@ -181,6 +171,16 @@ export default function AdminLoja() {
               style={{ background: '#ec4899', color: 'white', padding: '0.5rem 0.75rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
             >
               🎁 Promoções
+            </button>
+            <button 
+              onClick={() => {
+                localStorage.removeItem('loja_id');
+                localStorage.removeItem('loja_user');
+                navigate('/login-loja');
+              }}
+              style={{ background: '#ef4444', color: 'white', padding: '0.5rem 0.75rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
+            >
+              🚪 Sair
             </button>
           </div>
         </div>
