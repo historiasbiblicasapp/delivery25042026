@@ -86,6 +86,7 @@ CREATE TABLE IF NOT EXISTS public.delivery_produtos (
 CREATE TABLE IF NOT EXISTS public.delivery_pedidos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   loja_id UUID NOT NULL,
+  numero_pedido TEXT,
   cliente_nome TEXT NOT NULL,
   cliente_telefone TEXT NOT NULL,
   endereco TEXT,
@@ -96,6 +97,7 @@ CREATE TABLE IF NOT EXISTS public.delivery_pedidos (
   promo_codigo TEXT,
   total NUMERIC(10,2) NOT NULL,
   forma_pagamento TEXT DEFAULT 'dinheiro',
+  tipo_entrega TEXT DEFAULT 'entrega',
   status TEXT DEFAULT 'recebido',
   observacao TEXT,
   entregador_id UUID,

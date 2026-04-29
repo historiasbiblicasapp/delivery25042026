@@ -14,6 +14,7 @@ import Dispositivos from './pages/Dispositivos';
 import PDV from './pages/PDV';
 import Metrics from './pages/Metrics';
 import Promo from './pages/Promo';
+import EscolherDelivery from './pages/EscolherDelivery';
 import { LayoutDashboard, Package, LogOut, Truck, ShoppingCart, CreditCard, Monitor, ShoppingBag } from 'lucide-react';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -100,6 +101,7 @@ export default function App() {
           <Route path="/pedido" element={<Pedido />} />
           <Route path="/entregas/*" element={<Entregas />} />
           <Route path="/motoboy" element={<Motoboy />} />
+          <Route path="/escolher" element={<EscolherDelivery />} />
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </BrowserRouter>

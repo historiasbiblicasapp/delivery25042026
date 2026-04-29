@@ -23,6 +23,7 @@ interface Delivery {
   id: string;
   nome_fantasia: string;
   endereco: string;
+  telefone: string;
   taxa_entrega: number;
   preco_minimo: number;
   tempo_entrega_min: number;
@@ -50,8 +51,10 @@ export default function Pedido() {
   const [endereco, setEndereco] = useState('');
   const [observacao, setObservacao] = useState('');
   const [formaPagamento, setFormaPagamento] = useState<'dinheiro' | 'pix'>('dinheiro');
+  const [tipoEntrega, setTipoEntrega] = useState<'entrega' | 'retirada'>('entrega');
   const [loading, setLoading] = useState(false);
   const [mensagem, setMensagem] = useState('');
+  const [numeroPedido, setNumeroPedido] = useState('');
 
   useEffect(() => {
     if (deliveryId) {
@@ -144,7 +147,7 @@ export default function Pedido() {
   }
   const total = subtotal + taxaEntrega - desconto;
 
-  const fazerPedido = async () => {
+  const criarPedido = async () => {
     if (!delivery || !nome || !telefone || !endereco) return;
     if (subtotal < (delivery.preco_minimo || 0)) {
       setMensagem(`Pedido mínimo: R$ ${delivery.preco_minimo.toFixed(2)}`);
@@ -153,6 +156,9 @@ export default function Pedido() {
 
     setLoading(true);
     
+    const numPedido = Math.floor(1000 + Math.random() * 9000).toString();
+    setNumeroPedido(numPedido);
+    
     const itens = carrinho.map(item => ({
       produto_id: item.produto.id,
       nome: item.produto.nome,
@@ -160,20 +166,24 @@ export default function Pedido() {
       preco: item.produto.preco
     }));
 
+    const enderecoFinal = tipoEntrega === 'retirada' ? 'Retirada na loja' : endereco;
+
     const { error } = await supabase
       .from('delivery_pedidos')
       .insert({
         loja_id: delivery.id,
         cliente_nome: nome,
         cliente_telefone: telefone,
-        endereco,
+        endereco: enderecoFinal,
         itens,
         subtotal,
-        taxa_entrega: taxaEntrega,
+        taxa_entrega: tipoEntrega === 'entrega' ? taxaEntrega : 0,
         desconto,
         promo_codigo: promoCodigo,
         total,
         forma_pagamento: formaPagamento,
+        tipo_entrega: tipoEntrega,
+        numero_pedido: numPedido,
         status: 'recebido'
       });
 
@@ -181,7 +191,6 @@ export default function Pedido() {
       setMensagem('Erro ao fazer pedido');
     } else {
       setEtapa('confirmado');
-      // Limpar carrinho
       setCarrinho([]);
     }
     setLoading(false);
@@ -214,15 +223,25 @@ export default function Pedido() {
         <div style={{ textAlign: 'center', background: 'white', padding: '2rem', borderRadius: '8px', width: '100%', maxWidth: '400px' }}>
           <div style={{ fontSize: '64px', marginBottom: '1rem' }}>✅</div>
           <h2 style={{ color: '#22c55e', marginBottom: '0.5rem' }}>Pedido Confirmado!</h2>
-          <p style={{ color: '#666', marginBottom: '1rem' }}>
+          <p style={{ color: '#666', marginBottom: '0.5rem' }}>
+            <strong>Nº do pedido: #{numeroPedido}</strong>
+          </p>
+          <p style={{ color: '#666', marginBottom: '0.5rem' }}>
             Seu pedido foi enviado para <strong>{delivery?.nome_fantasia}</strong>
           </p>
           <p style={{ color: '#666', fontSize: '0.875rem' }}>
             Tempo estimado: {delivery?.tempo_entrega_min} minutos
           </p>
-          <p style={{ color: '#666', fontSize: '0.875rem', marginTop: '1rem' }}>
-            Você receberá uma confirmação pelo WhatsApp!
+          <p style={{ color: '#666', fontSize: '0.875rem', marginTop: '1rem', background: '#fef3c7', padding: '0.5rem', borderRadius: '4px' }}>
+            📱 A loja recebeu seu pedido e ligará para confirmar!
           </p>
+          <a 
+            href={`https://wa.me/55${delivery?.telefone}?text=Olá,+recebi+meu+pedido+${numeroPedido}++${delivery?.nome_fantasia}`}
+            target="_blank"
+            style={{ display: 'block', marginTop: '0.75rem', padding: '0.75rem', background: '#25D366', color: 'white', textDecoration: 'none', borderRadius: '4px' }}
+          >
+            💬 Falar no WhatsApp
+          </a>
           <a 
             href={`/pedido?loja=${deliveryId}`}
             style={{ display: 'block', marginTop: '1.5rem', padding: '0.75rem', background: corApp, color: 'white', textDecoration: 'none', borderRadius: '4px' }}
@@ -390,6 +409,24 @@ export default function Pedido() {
           <button onClick={() => setEtapa('carrinho')} style={{ marginBottom: '1rem', background: 'none', border: 'none', color: corApp, cursor: 'pointer' }}>
             ← Voltar ao carrinho
           </button>
+
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Como deseja receber?</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+              <button
+                onClick={() => setTipoEntrega('entrega')}
+                style={{ padding: '1rem', background: tipoEntrega === 'entrega' ? corApp : 'white', color: tipoEntrega === 'entrega' ? 'white' : '#333', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer' }}
+              >
+                🛵 Entrega
+              </button>
+              <button
+                onClick={() => setTipoEntrega('retirada')}
+                style={{ padding: '1rem', background: tipoEntrega === 'retirada' ? corApp : 'white', color: tipoEntrega === 'retirada' ? 'white' : '#333', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer' }}
+              >
+                🏃 Retirada
+              </button>
+            </div>
+          </div>
           
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Nome *</label>
@@ -401,10 +438,12 @@ export default function Pedido() {
             <input type="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} required placeholder="11999999999" style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }} />
           </div>
           
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Endereço de entrega *</label>
-            <textarea value={endereco} onChange={(e) => setEndereco(e.target.value)} required placeholder="Rua, número, complemento, ponto de referência" style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px', minHeight: '80px' }} />
-          </div>
+          {tipoEntrega === 'entrega' && (
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Endereço de entrega *</label>
+              <textarea value={endereco} onChange={(e) => setEndereco(e.target.value)} required placeholder="Rua, número, complemento, ponto de referência" style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px', minHeight: '80px' }} />
+            </div>
+          )}
           
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Observação</label>
@@ -413,7 +452,7 @@ export default function Pedido() {
 
           <button 
             onClick={() => { if (nome && telefone && endereco) setEtapa('pagamento') }}
-            disabled={!nome || !telefone || !endereco}
+            disabled={!nome || !telefone || (tipoEntrega === 'entrega' && !endereco)}
             style={{ width: '100%', padding: '1rem', background: corApp, color: 'white', border: 'none', borderRadius: '8px', fontSize: '1rem', fontWeight: 600, cursor: !nome || !telefone || !endereco ? 'not-allowed' : 'pointer', opacity: !nome || !telefone || !endereco ? 0.5 : 1 }}
           >
             Continuar para pagamento
@@ -461,7 +500,7 @@ export default function Pedido() {
           )}
 
           <button 
-            onClick={fazerPedido}
+            onClick={criarPedido}
             disabled={loading}
             style={{ width: '100%', padding: '1rem', background: '#22c55e', color: 'white', border: 'none', borderRadius: '8px', fontSize: '1rem', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
           >
