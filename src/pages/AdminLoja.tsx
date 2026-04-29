@@ -141,7 +141,7 @@ export default function AdminLoja() {
               {loja.ativo ? '✅ Delivery aberto' : '❌ Delivery fechado'}
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <button 
               onClick={() => navigate(`/cardapio?loja=${lojaId}`)}
               style={{ background: 'white', color: corApp, padding: '0.5rem 0.75rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
@@ -153,6 +153,16 @@ export default function AdminLoja() {
               style={{ background: 'white', color: corApp, padding: '0.5rem 0.75rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}
             >
               <Truck size={14} /> Entregas
+            </button>
+            <button 
+              onClick={() => {
+                localStorage.removeItem('loja_id');
+                localStorage.removeItem('loja_user');
+                navigate('/login-loja');
+              }}
+              style={{ background: '#ef4444', color: 'white', padding: '0.5rem 0.75rem', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}
+            >
+              🚪 Sair
             </button>
             <button 
               onClick={() => navigate(`/pdv?loja=${lojaId}`)}
